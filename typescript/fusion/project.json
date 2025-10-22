@@ -29,6 +29,12 @@
         "lintFilePatterns": ["typescript/fusion/**/*.ts"]
       },
       "outputs": ["{options.outputFile}"]
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p typescript/fusion/tsconfig.lib.json"
+      }
     }
   }
 }

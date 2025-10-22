@@ -3,7 +3,7 @@
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "typescript/cross-chain/src",
   "projectType": "library",
-  "tags": ["typescript", "sdk", "cross-chain"],
+  "tags": ["typescript", "sdk"],
   "targets": {
     "build": {
       "executor": "@nx/js:tsc",
@@ -29,6 +29,12 @@
         "lintFilePatterns": ["typescript/cross-chain/**/*.ts"]
       },
       "outputs": ["{options.outputFile}"]
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p typescript/cross-chain/tsconfig.lib.json"
+      }
     }
   }
 }

@@ -29,6 +29,12 @@
         "lintFilePatterns": ["typescript/limit-order/**/*.ts"]
       },
       "outputs": ["{options.outputFile}"]
+    },
+    "type-check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "tsc --noEmit -p typescript/limit-order/tsconfig.lib.json"
+      }
     }
   }
 }

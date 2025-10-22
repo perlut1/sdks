@@ -107,6 +107,9 @@ pnpm test
 # Lint all projects
 pnpm lint
 
+# Type check all projects
+pnpm lint:types
+
 # Show dependency graph
 pnpm nx graph
 
@@ -145,25 +148,57 @@ This monorepo uses NX for task orchestration and caching. Key features:
 
 Each SDK package also has its own npm scripts in `package.json` for:
 - `build` - Build ESM, CJS, and TypeScript types
-- `test` - Run Jest tests
+- `test` - Run Jest tests with SWC
 - `lint` - Run ESLint
 - `format` - Format with Prettier
 - `type-check` - TypeScript type checking
 - `clean` - Clean build artifacts
 
-### ESLint Configuration
+## 🚀 Release & Publishing
+
+### Releasing a New Version
+
+To release a new version of an SDK:
+
+```bash
+# Through GitHub Actions (recommended)
+# Go to Actions → Release new version → Run workflow
+# Select the SDK and version bump type
+```
+
+### Publishing
+
+Publishing happens automatically after a release is created. The workflow will:
+1. Build the SDK
+2. Publish to GitHub Package Registry
+3. Optionally publish to NPM (if configured)
+
+### Manual Publishing
+
+```bash
+# Build the SDK
+pnpm nx build <sdk-name>
+
+# Navigate to the SDK directory
+cd typescript/<sdk-name>
+
+# Publish
+pnpm publish dist --no-git-checks
+```
+
+## 🔧 Configuration
+
+### ESLint
 
 This monorepo uses the standard `@1inch/eslint-config` for consistent code style across all SDKs.
 
-## 🏗️ Architecture
+### TypeScript
 
-The monorepo is designed to support multiple programming languages:
+Uses `@1inch/tsconfig` as the base TypeScript configuration with ES2021 target.
 
-- **TypeScript**: Modern JavaScript/TypeScript SDKs with full type safety
-- **Python**: Python SDKs for data science and backend integrations (coming soon)
-- **Java**: Enterprise Java SDKs (coming soon)
+### Testing
 
-Each language has its own toolchain and build process, unified under NX orchestration.
+Jest with SWC for fast test execution.
 
 ## 📝 License
 
