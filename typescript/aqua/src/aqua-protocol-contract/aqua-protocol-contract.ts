@@ -32,7 +32,12 @@ export class AquaProtocolContract {
         const [result] = encodeFunctionData({
             abi: AQUA_PROTOCOL_ABI,
             functionName: 'ship',
-            args: [app.toString(), strategy.toString(), tokens, amounts] // todo: fix
+            args: [
+                app.toString(),
+                strategy.toString(),
+                tokens.map((t) => t.toString()),
+                amounts
+            ] // todo: fix
         })
 
         return new HexString(result)
