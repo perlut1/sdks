@@ -1,2 +1,2 @@
-export { Address } from './address'
-export { HexString } from './hex-string'
+export {Address} from './address'
+export {HexString} from './hex-string'
