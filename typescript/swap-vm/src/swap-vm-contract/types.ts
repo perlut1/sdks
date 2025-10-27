@@ -1,4 +1,5 @@
 import {Address, HexString} from '@1inch/sdk-shared'
+import {MakerTraits} from '../swap-vm/maker-traits'
 
 /**
  * SwapVM Protocol types for the core methods
@@ -6,7 +7,7 @@ import {Address, HexString} from '@1inch/sdk-shared'
 
 export type Order = {
     maker: Address
-    traits: bigint
+    traits: MakerTraits
     /**
      * List of instructions to be executed (8 bit index, 8 bit args length, args)
      */
@@ -46,19 +47,4 @@ export type SwapResult = {
     amountIn: bigint
     amountOut: bigint
     orderHash: HexString
-}
-
-export type QuoteDecodedResult = {
-    functionName: string
-    decodedArgs: QuoteArgs
-}
-
-export type QuoteNonViewDecodedResult = {
-    functionName: string
-    decodedArgs: QuoteNonViewArgs
-}
-
-export type SwapDecodedResult = {
-    functionName: string
-    decodedArgs: SwapArgs
 }

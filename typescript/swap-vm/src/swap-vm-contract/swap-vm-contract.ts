@@ -1,16 +1,8 @@
-import {encodeFunctionData, decodeFunctionData} from 'viem'
+import {encodeFunctionData} from 'viem'
 import {CallInfo, Address, HexString} from '@1inch/sdk-shared'
-import {
-    QuoteArgs,
-    QuoteNonViewArgs,
-    SwapArgs,
-    QuoteDecodedResult,
-    QuoteNonViewDecodedResult,
-    SwapDecodedResult
-} from './types'
+import {QuoteArgs, QuoteNonViewArgs, SwapArgs} from './types'
 import SWAP_VM_ABI from '../abi/SwapVM.abi.json' with {type: 'json'}
 
-// todo: think a bit about traits, maybe it makes sense to have them as domain class
 /**
  * SwapVM contract encoding/decoding utilities
  */
@@ -26,7 +18,7 @@ export class SwapVMContract {
             args: [
                 {
                     maker: args.order.maker.toString(),
-                    traits: args.order.traits,
+                    traits: args.order.traits.asBigInt(),
                     program: args.order.program.toString()
                 },
                 args.tokenIn.toString(),
@@ -50,7 +42,7 @@ export class SwapVMContract {
             args: [
                 {
                     maker: args.order.maker.toString(),
-                    traits: args.order.traits,
+                    traits: args.order.traits.asBigInt(),
                     program: args.order.program.toString()
                 },
                 args.tokenIn.toString(),
@@ -74,7 +66,7 @@ export class SwapVMContract {
             args: [
                 {
                     maker: args.order.maker.toString(),
-                    traits: args.order.traits,
+                    traits: args.order.traits.asBigInt(),
                     program: args.order.program.toString()
                 },
                 args.tokenIn.toString(),
@@ -85,116 +77,6 @@ export class SwapVMContract {
         })
 
         return new HexString(result)
-    }
-
-    /**
-     * Decode quote function call data
-     */
-    static decodeQuoteResult(data: HexString): QuoteDecodedResult {
-        const decoded = decodeFunctionData({
-            abi: SWAP_VM_ABI,
-            data: data.toString()
-        })
-
-        const args = decoded.args as readonly [
-            {maker: string; traits: bigint; program: string},
-            string,
-            string,
-            bigint,
-            string
-        ]
-
-        const [order, tokenIn, tokenOut, amount, takerTraitsAndData] = args
-
-        return {
-            functionName: decoded.functionName,
-            decodedArgs: {
-                order: {
-                    maker: new Address(order.maker),
-                    traits: order.traits,
-                    program: new HexString(order.program)
-                },
-                tokenIn: new Address(tokenIn),
-                tokenOut: new Address(tokenOut),
-                amount,
-                takerTraitsAndData: new HexString(takerTraitsAndData)
-            }
-        }
-    }
-
-    /**
-     * Decode quoteNonView function call data
-     */
-    static decodeQuoteNonViewResult(
-        data: HexString
-    ): QuoteNonViewDecodedResult {
-        const decoded = decodeFunctionData({
-            abi: SWAP_VM_ABI,
-            data: data.toString()
-        })
-
-        const args = decoded.args as readonly [
-            {maker: string; traits: bigint; program: string},
-            string,
-            string,
-            bigint,
-            string
-        ]
-
-        const [order, tokenIn, tokenOut, amount, takerTraitsAndData] = args
-
-        return {
-            functionName: decoded.functionName,
-            decodedArgs: {
-                order: {
-                    maker: new Address(order.maker),
-                    traits: order.traits,
-                    program: new HexString(order.program)
-                },
-                tokenIn: new Address(tokenIn),
-                tokenOut: new Address(tokenOut),
-                amount,
-                takerTraitsAndData: new HexString(takerTraitsAndData)
-            }
-        }
-    }
-
-    /**
-     * Decode swap function call data
-     */
-    static decodeSwapResult(data: HexString): SwapDecodedResult {
-        const decoded = decodeFunctionData({
-            abi: SWAP_VM_ABI,
-            data: data.toString()
-        })
-
-        const args = decoded.args as readonly [
-            {maker: string; traits: bigint; program: string},
-            string,
-            string,
-            bigint,
-            string
-        ]
-
-        const [order, tokenIn, tokenOut, amount, sigPlusTakerTraitsAndData] =
-            args
-
-        return {
-            functionName: decoded.functionName,
-            decodedArgs: {
-                order: {
-                    maker: new Address(order.maker),
-                    traits: order.traits,
-                    program: new HexString(order.program)
-                },
-                tokenIn: new Address(tokenIn),
-                tokenOut: new Address(tokenOut),
-                amount,
-                sigPlusTakerTraitsAndData: new HexString(
-                    sigPlusTakerTraitsAndData
-                )
-            }
-        }
     }
 
     /**
