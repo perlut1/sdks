@@ -4,6 +4,7 @@ import {BytesBuilder, trim0x} from '@1inch/byte-utils'
 import {QuoteArgs, QuoteNonViewArgs, SwapArgs, Order} from './types'
 import {TakerTraits} from '../swap-vm'
 import SWAP_VM_ABI from '../abi/SwapVM.abi.json' with {type: 'json'}
+import assert from 'node:assert'
 
 /**
  * SwapVM contract encoding/decoding utilities
@@ -149,17 +150,14 @@ export class SwapVMContract {
 
         const builder = new BytesBuilder()
 
-        if (!useAquaInsteadOfSignature && signature) {
+        if (!useAquaInsteadOfSignature) {
+            assert(
+                signature,
+                'signature required when useOfAquaInsteadOfSignature disabled'
+            )
             const sigBytes = trim0x(signature.toString())
             builder.addUint16(BigInt(sigBytes.length / 2))
             builder.addBytes(signature.toString())
-            builder.addBytes(takerTraits.encode().toString())
-
-            if (additionalData) {
-                builder.addBytes(additionalData.toString())
-            }
-
-            return new HexString(builder.asHex())
         }
 
         builder.addBytes(takerTraits.encode().toString())
