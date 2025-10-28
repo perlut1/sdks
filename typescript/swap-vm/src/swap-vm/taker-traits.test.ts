@@ -25,7 +25,7 @@ describe('TakerTraits', () => {
     describe('build', () => {
         it('should build traits with specified flags', () => {
             const threshold = 1000000n
-            const traits = TakerTraits.build({
+            const traits = TakerTraits.fromParams({
                 isExactIn: true,
                 shouldUnwrapWeth: true,
                 hasPreTransferInHook: false,
@@ -33,7 +33,7 @@ describe('TakerTraits', () => {
                 isFirstTransferFromTaker: true,
                 useTransferFromAndAquaPush: false,
                 threshold,
-                to: mockReceiver
+                customReceiver: mockReceiver
             })
 
             expect(traits.isExactIn()).toBe(true)
@@ -134,7 +134,7 @@ describe('TakerTraits', () => {
             expect(traits.hasTo()).toBe(true)
             expect(traits.getTo()?.toString()).toBe(mockReceiver.toString())
 
-            traits.withoutTo()
+            traits.disableCustomDestination()
             expect(traits.hasTo()).toBe(false)
             expect(traits.getTo()).toBe(undefined)
         })
@@ -143,11 +143,11 @@ describe('TakerTraits', () => {
     describe('encode/decode', () => {
         it('should encode and decode traits with threshold and receiver', () => {
             const threshold = 1000000n
-            const originalTraits = TakerTraits.build({
+            const originalTraits = TakerTraits.fromParams({
                 isExactIn: true,
                 shouldUnwrapWeth: true,
                 threshold,
-                to: mockReceiver
+                customReceiver: mockReceiver
             })
 
             const encoded = originalTraits.encode()
@@ -162,7 +162,7 @@ describe('TakerTraits', () => {
         })
 
         it('should encode and decode traits without optional fields', () => {
-            const originalTraits = TakerTraits.build({
+            const originalTraits = TakerTraits.fromParams({
                 isExactIn: true,
                 hasPreTransferInHook: true
             })
@@ -180,7 +180,7 @@ describe('TakerTraits', () => {
 
     describe('getFlags', () => {
         it('should return combined flags as BN', () => {
-            const traits = TakerTraits.build({
+            const traits = TakerTraits.fromParams({
                 isExactIn: true, // bit 0 set = value 1
                 shouldUnwrapWeth: true, // bit 1 set = value 2
                 hasPreTransferInHook: true // bit 2 set = value 4
@@ -194,7 +194,7 @@ describe('TakerTraits', () => {
     describe('validate', () => {
         it('should validate exact input with minimum output threshold', () => {
             const threshold = 1000n
-            const traits = TakerTraits.build({
+            const traits = TakerTraits.fromParams({
                 isExactIn: true,
                 threshold
             })
@@ -209,7 +209,7 @@ describe('TakerTraits', () => {
 
         it('should validate exact output with maximum input threshold', () => {
             const threshold = 1000n
-            const traits = TakerTraits.build({
+            const traits = TakerTraits.fromParams({
                 isExactIn: false,
                 threshold
             })
@@ -224,7 +224,7 @@ describe('TakerTraits', () => {
 
         it('should validate strict threshold amount', () => {
             const threshold = 1000n
-            const traits = TakerTraits.build({
+            const traits = TakerTraits.fromParams({
                 isStrictThresholdAmount: true,
                 threshold
             })
@@ -240,7 +240,7 @@ describe('TakerTraits', () => {
         })
 
         it('should not validate when no threshold is set', () => {
-            const traits = TakerTraits.build({
+            const traits = TakerTraits.fromParams({
                 isExactIn: true
             })
 

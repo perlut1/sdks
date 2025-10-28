@@ -12,13 +12,13 @@ import {TakerTraitsBuildArgs} from './types'
  * bit 2 `HAS_PRE_TRANSFER_IN_BIT_FLAG`           - if set, call pre-transfer-in hook
  * bit 3 `IS_STRICT_THRESHOLD_BIT_FLAG`           - if set, require exact threshold amount match
  * bit 4 `HAS_THRESHOLD_BIT_FLAG`                 - if set, threshold amount follows flags byte
- * bit 5 `HAS_TO_BIT_FLAG`                        - if set, custom receiver address follows threshold
+ * bit 5 `HAS_CUSTOM_RECEIVER_BIT_FLAG`                        - if set, custom receiver address follows threshold
  * bit 6 `IS_FIRST_TRANSFER_FROM_TAKER_BIT_FLAG`  - if set, transfer from taker happens first
  * bit 7 `USE_TRANSFER_FROM_AND_AQUA_PUSH`        - if set, use transferFrom + Aqua push pattern
  *
  * Optional fields (variable length):
  * - uint256 threshold (32 bytes) - present if HAS_THRESHOLD_BIT_FLAG is set
- * - address to (20 bytes) - present if HAS_TO_BIT_FLAG is set, otherwise defaults to taker
+ * - address to (20 bytes) - present if HAS_CUSTOM_RECEIVER_BIT_FLAG is set, otherwise defaults to taker
  */
 export class TakerTraits {
     private static IS_EXACT_IN_BIT_FLAG = 0n
@@ -31,7 +31,7 @@ export class TakerTraits {
 
     private static HAS_THRESHOLD_BIT_FLAG = 4n
 
-    private static HAS_TO_BIT_FLAG = 5n
+    private static HAS_CUSTOM_RECEIVER_BIT_FLAG = 5n
 
     private static IS_FIRST_TRANSFER_FROM_TAKER_BIT_FLAG = 6n
 
@@ -41,7 +41,7 @@ export class TakerTraits {
 
     private threshold?: bigint
 
-    private to?: Address
+    private customReceiver?: Address
 
     constructor(
         val: bigint = 0n,
@@ -53,17 +53,25 @@ export class TakerTraits {
         this.flags = new BN(val)
 
         this.threshold = data.threshold
-        this.to = data.to
+        this.customReceiver = data.to
+
+        this.setThresholdBit(Boolean(this.threshold))
+
+        const hasCustomReceiver = Boolean(
+            this.customReceiver && !this.customReceiver.isZero()
+        )
+
+        this.setCustomReceiverBit(hasCustomReceiver)
     }
 
     static default(): TakerTraits {
-        return new TakerTraits(0n, {})
+        return new TakerTraits(0n, {}).withExactIn()
     }
 
     /**
      * Build TakerTraits from individual components
      */
-    static build(args: TakerTraitsBuildArgs): TakerTraits {
+    static fromParams(args: TakerTraitsBuildArgs): TakerTraits {
         const traits = TakerTraits.default()
 
         if (args.isExactIn) {
@@ -90,12 +98,12 @@ export class TakerTraits {
             traits.withUseTransferFromAndAquaPush()
         }
 
-        if (args.threshold !== undefined && args.threshold > 0n) {
+        if (args.threshold) {
             traits.withThreshold(args.threshold)
         }
 
-        if (args.to && !args.to.isZero()) {
-            traits.withTo(args.to)
+        if (args.customReceiver && !args.customReceiver.isZero()) {
+            traits.withCustomReceiver(args.customReceiver)
         }
 
         return traits
@@ -114,7 +122,7 @@ export class TakerTraits {
         const hasThreshold =
             flags.getBit(TakerTraits.HAS_THRESHOLD_BIT_FLAG) === 1
         const hasCustomReceiver =
-            flags.getBit(TakerTraits.HAS_TO_BIT_FLAG) === 1
+            flags.getBit(TakerTraits.HAS_CUSTOM_RECEIVER_BIT_FLAG) === 1
 
         const optionalFields = {
             threshold: hasThreshold ? iter.nextUint256() : undefined,
@@ -135,12 +143,20 @@ export class TakerTraits {
 
         builder.addByte(this.flags)
 
-        if (this.hasThreshold() && this.threshold !== undefined) {
+        if (this.hasThreshold()) {
+            assert(
+                this.threshold,
+                'threshold required if threshold flag is set'
+            )
             builder.addUint256(this.threshold)
         }
 
-        if (this.hasTo() && this.to !== undefined) {
-            builder.addUint160(BigInt(this.to.toString()))
+        if (this.hasCustomReceiver()) {
+            assert(
+                this.customReceiver && !this.customReceiver.isZero(),
+                'customReceiver required if customReceiver flag is set'
+            )
+            builder.addUint160(BigInt(this.customReceiver.toString()))
         }
 
         return new HexString(builder.asHex())
@@ -281,8 +297,8 @@ export class TakerTraits {
     public withThreshold(amount: bigint): this {
         assert(amount > 0n, 'Threshold must be positive')
 
-        this.flags = this.flags.setBit(TakerTraits.HAS_THRESHOLD_BIT_FLAG, 1)
         this.threshold = amount
+        this.setThresholdBit(true)
 
         return this
     }
@@ -291,8 +307,8 @@ export class TakerTraits {
      * Remove threshold
      */
     public withoutThreshold(): this {
-        this.flags = this.flags.setBit(TakerTraits.HAS_THRESHOLD_BIT_FLAG, 0)
         this.threshold = undefined
+        this.setThresholdBit(false)
 
         return this
     }
@@ -300,25 +316,28 @@ export class TakerTraits {
     /**
      * Check if has custom receiver
      */
-    public hasTo(): boolean {
-        return this.flags.getBit(TakerTraits.HAS_TO_BIT_FLAG) === 1
+    public hasCustomReceiver(): boolean {
+        return this.flags.getBit(TakerTraits.HAS_CUSTOM_RECEIVER_BIT_FLAG) === 1
     }
 
     /**
      * Get receiver address
      */
     public getTo(): Address | undefined {
-        return this.to
+        return this.customReceiver
     }
 
     /**
      * Set receiver address
      */
-    public withTo(receiver: Address): this {
-        assert(!receiver.isZero(), 'Use withoutTo() to use default taker')
+    public withCustomReceiver(receiver: Address): this {
+        assert(
+            !receiver.isZero(),
+            'Use withoutCustomReceiver() to use default taker'
+        )
 
-        this.flags = this.flags.setBit(TakerTraits.HAS_TO_BIT_FLAG, 1)
-        this.to = receiver
+        this.setCustomReceiverBit(true)
+        this.customReceiver = receiver
 
         return this
     }
@@ -326,9 +345,9 @@ export class TakerTraits {
     /**
      * Remove custom receiver
      */
-    public withoutTo(): this {
-        this.flags = this.flags.setBit(TakerTraits.HAS_TO_BIT_FLAG, 0)
-        this.to = undefined
+    public withoutCustomReceiver(): this {
+        this.customReceiver = undefined
+        this.setCustomReceiverBit(false)
 
         return this
     }
@@ -443,5 +462,23 @@ export class TakerTraits {
                 )
             }
         }
+    }
+
+    private setThresholdBit(val: boolean): this {
+        this.flags = this.flags.setBit(
+            TakerTraits.HAS_THRESHOLD_BIT_FLAG,
+            Number(val)
+        )
+
+        return this
+    }
+
+    private setCustomReceiverBit(val: boolean): this {
+        this.flags = this.flags.setBit(
+            TakerTraits.HAS_CUSTOM_RECEIVER_BIT_FLAG,
+            Number(val)
+        )
+
+        return this
     }
 }
