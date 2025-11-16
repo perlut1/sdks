@@ -1,4 +1,6 @@
-import { describe, expect, it } from 'vitest'
+// SPDX-License-Identifier: LicenseRef-Degensoft-SwapVM-1.1
+
+import { describe, it, expect } from 'vitest'
 import { InvalidateTokenOut1DArgs } from './invalidate-token-out-1d-args'
 import { InvalidateTokenOut1DArgsCoder } from './invalidate-token-out-1d-args-coder'
 

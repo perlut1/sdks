@@ -3,6 +3,7 @@
   "version": "1.0.4",
   "description": "1inch Aqua Protocol SDK",
   "author": "@1inch",
+  "license": "LicenseRef-Degensoft-Aqua-Source-1.1",
   "repository": {
     "type": "git",
     "url": "ssh://git@github.com:1inch/sdks.git"
@@ -46,6 +47,7 @@
   "devDependencies": {
     "@types/node": "^22.13.0",
     "dotenv": "17.2.3",
+    "eslint-plugin-license-header": "0.8.0",
     "tsdown": "^0.16.0",
     "typescript": "^5.7.3",
     "vitest": "^3.2.4"

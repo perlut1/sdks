@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LicenseRef-Degensoft-SwapVM-1.1
+
 import { JumpArgs } from './jump-args'
 import { JumpIfTokenArgs } from './jump-if-token-args'
 import { DeadlineArgs } from './deadline-args'

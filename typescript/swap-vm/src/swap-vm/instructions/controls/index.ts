@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: LicenseRef-Degensoft-SwapVM-1.1
+
 export * from './opcodes'
 export { JumpArgs } from './jump-args'
 export { JumpIfTokenArgs } from './jump-if-token-args'
