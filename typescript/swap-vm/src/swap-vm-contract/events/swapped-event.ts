@@ -1,13 +1,13 @@
-import { decodeEventLog, Log } from 'viem'
-import { Address, DataFor, HexString } from '@1inch/sdk-core'
+import type { Log } from 'viem'
+import { decodeEventLog } from 'viem'
+import type { DataFor } from '@1inch/sdk-core'
+import { Address, HexString } from '@1inch/sdk-core'
 import { SWAP_VM_ABI } from '../../abi/SwapVM.abi'
 
 export class SwappedEvent {
   public static TOPIC: HexString = new HexString(
     '0x54bc5c027d15d7aa8ae083f994ab4411d2f223291672ecd3a344f3d92dcaf8b2',
   )
-
-  public static eventName = 'Swapped' as const
 
   constructor(
     public readonly orderHash: HexString,
@@ -40,7 +40,7 @@ export class SwappedEvent {
       abi: SWAP_VM_ABI,
       data: log.data,
       topics: log.topics,
-      eventName: SwappedEvent.eventName,
+      eventName: 'Swapped',
     })
 
     const { orderHash, maker, taker, tokenIn, tokenOut, amountIn, amountOut } = decoded.args

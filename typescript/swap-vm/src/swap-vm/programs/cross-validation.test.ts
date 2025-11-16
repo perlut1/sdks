@@ -1,10 +1,10 @@
 import { describe, it, expect } from 'vitest'
 import { Address, AddressHalf } from '@1inch/sdk-core'
-import { SwapVmProgram } from '@1inch/swap-vm-sdk'
 import { RegularProgramBuilder } from './regular-program-builder'
 import { AquaProgramBuilder } from './aqua-program-builder'
-import * as balances from '../instructions/balances'
-import * as controls from '../instructions/controls'
+import { SwapVmProgram } from '../programs/swap-vm-program'
+import type * as balances from '../instructions/balances'
+import type * as controls from '../instructions/controls'
 
 describe('Cross-validation with Solidity', () => {
   it('should match Solidity test_PartialFillLimitOrder structure', () => {

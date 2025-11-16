@@ -1,17 +1,13 @@
 /* eslint-disable no-console */
-import { GenericContainer, StartedTestContainer } from 'testcontainers'
+import type { StartedTestContainer } from 'testcontainers'
+import { GenericContainer } from 'testcontainers'
 import { LogWaitStrategy } from 'testcontainers/build/wait-strategies/log-wait-strategy'
-import {
-  parseEther,
-  parseUnits,
-  createTestClient,
-  http,
+import type {
   WalletClient,
   Abi,
   Transport,
   Hex,
   ContractConstructorArgs,
-  createWalletClient,
   RpcSchema,
   PublicRpcSchema,
   Chain,
@@ -21,6 +17,13 @@ import {
   TestRpcSchema,
   Client,
   PublicActions,
+} from 'viem'
+import {
+  parseEther,
+  parseUnits,
+  createTestClient,
+  http,
+  createWalletClient,
   publicActions,
 } from 'viem'
 
@@ -153,7 +156,7 @@ async function startNode(
     ])
     // .withLogConsumer((s) => s.pipe(process.stdout))
     .withWaitStrategy(new LogWaitStrategy('Listening on 0.0.0.0:8545', 1))
-    .withName(`anvil_aqua_tests_${chainId}_${Math.random()}`)
+    .withName(`anvil_swap_vm_tests_${chainId}_${Math.random()}`)
     .start()
 
   const url = `http://127.0.0.1:${anvil.getMappedPort(innerPort)}`
@@ -176,20 +179,27 @@ async function startNode(
 }
 
 async function deployContracts(transport: Transport, chain: Chain): Promise<TestAddresses> {
+  const account = privateKeyToAccount(
+    '0x3667482b9520ea17999acd812ad3db1ff29c12c006e756cdcb5fd6cc5d5a9b01',
+  )
   const deployer = createWalletClient({
-    account: privateKeyToAccount(
-      '0x3667482b9520ea17999acd812ad3db1ff29c12c006e756cdcb5fd6cc5d5a9b01',
-    ),
+    account,
     transport,
     chain,
-  })
+  }).extend(publicActions)
 
   const aqua = await deploy(Aqua as ContractParams, [], deployer)
 
+  const nonce = await deployer.getTransactionCount({ address: account.address })
   const [swapVMAquaRouter, customSwapVM, testTrader] = await Promise.all([
-    deploy(TestAquaSwapVMRouter as ContractParams, [aqua], deployer),
-    deploy(TestCustomSwapVM as ContractParams, [aqua], deployer),
-    deploy(TestTrader as ContractParams, [aqua, [ADDRESSES.WETH, ADDRESSES.USDC]], deployer),
+    deploy(TestAquaSwapVMRouter as ContractParams, [aqua], deployer, nonce),
+    deploy(TestCustomSwapVM as ContractParams, [aqua], deployer, nonce + 1),
+    deploy(
+      TestTrader as ContractParams,
+      [aqua, [ADDRESSES.WETH, ADDRESSES.USDC]],
+      deployer,
+      nonce + 2,
+    ),
   ])
 
   return {
@@ -239,6 +249,7 @@ async function deploy(
   json: ContractParams,
   params: ContractConstructorArgs<Abi>,
   deployer: WalletClient,
+  nonce?: number,
 ): Promise<Hex> {
   const [account] = await deployer.getAddresses()
 
@@ -248,6 +259,7 @@ async function deploy(
     args: params,
     account,
     chain: deployer.chain,
+    nonce,
   })
 
   // Get the contract address from the transaction receipt

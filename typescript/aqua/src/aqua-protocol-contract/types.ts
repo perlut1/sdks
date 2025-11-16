@@ -1,4 +1,4 @@
-import { Address, HexString } from '@1inch/sdk-core'
+import type { Address, HexString } from '@1inch/sdk-core'
 
 /**
  * Aqua Protocol types for the 4 core methods
@@ -24,36 +24,7 @@ export type DockArgs = {
   tokens: Address[]
 }
 
-export type PullArgs = {
-  maker: Address
-  /**
-   *  should be as keccak256(strategy)
-   */
-  strategyHash: HexString
-  token: Address
-  amount: bigint
-  to: Address
-}
-
-export type PushArgs = {
-  maker: Address
-  app: Address
-  /**
-   *  should be as keccak256(strategy)
-   */
-  strategyHash: HexString
-  token: Address
-  amount: bigint
-}
-
 export type ShipDecodedResult = {
   functionName: string
   decodedArgs: ShipArgs
-}
-
-export enum EventAction {
-  Pushed = 'pushed',
-  Pulled = 'pulled',
-  Shipped = 'shipped',
-  Docked = 'docked',
 }

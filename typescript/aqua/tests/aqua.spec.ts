@@ -1,9 +1,11 @@
 /* eslint-disable max-lines-per-function */
 import 'dotenv/config'
 import { Address, HexString } from '@1inch/sdk-core'
-import { encodeAbiParameters, encodeFunctionData, Hex, parseUnits } from 'viem'
+import type { Hex } from 'viem'
+import { encodeAbiParameters, encodeFunctionData, parseUnits } from 'viem'
 import { ADDRESSES } from '@1inch/sdk-core/test-utils'
-import { ReadyEvmFork, setupEvm } from './setup-evm.js'
+import type { ReadyEvmFork } from './setup-evm.js'
+import { setupEvm } from './setup-evm.js'
 
 import { AquaProtocolContract } from '../src/aqua-protocol-contract/aqua-protocol-contract.js'
 import { AQUA_ABI } from '../src/abi/Aqua.abi.js'
@@ -19,12 +21,14 @@ describe('Aqua', () => {
     strategyHash: Hex,
     token: Address | Hex,
   ): Promise<bigint> => {
-    return forkNode.provider.readContract({
+    const [balance] = await forkNode.provider.readContract({
       address: forkNode.addresses.aqua,
       abi: AQUA_ABI,
-      functionName: 'balances',
+      functionName: 'rawBalances',
       args: [maker.toString() as Hex, app.toString() as Hex, strategyHash, token.toString() as Hex],
     })
+
+    return balance
   }
 
   beforeAll(async () => {
