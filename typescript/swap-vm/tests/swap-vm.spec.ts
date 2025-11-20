@@ -9,14 +9,13 @@ import { AquaProtocolContract, ABI } from '@1inch/aqua-sdk'
 import { ReadyEvmFork } from './setup-evm.js'
 import { Order } from '../src/swap-vm/order.js'
 import { MakerTraits } from '../src/swap-vm/maker-traits.js'
-import type { IArgsCoder, IArgsData } from '../src'
 import {
   AquaAMMStrategy,
   AquaProgramBuilder,
   ProgramBuilder,
   SwapVMContract,
   TakerTraits,
-  xycSwap,
+  instructions,
 } from '../src'
 import { SWAP_VM_ABI } from '../src/abi/SwapVM.abi.js'
 import { Opcode } from '../src/swap-vm/instructions/opcode.js'
@@ -322,7 +321,7 @@ describe('SwapVM', () => {
     await swapper.transferToken(USDC.toString(), otherSwapperAddress, parseUnits('100', 6))
     await otherSwapper.unlimitedApprove(USDC.toString(), swapVM.address.toString())
 
-    class OnlyAllowedTakerArgs implements IArgsData {
+    class OnlyAllowedTakerArgs implements instructions.IArgsData {
       constructor(public readonly allowedTaker: Address) {}
 
       toJSON(): Record<string, unknown> | null {
@@ -330,7 +329,7 @@ describe('SwapVM', () => {
       }
     }
 
-    class OnlyAllowedTakerCoder implements IArgsCoder<OnlyAllowedTakerArgs> {
+    class OnlyAllowedTakerCoder implements instructions.IArgsCoder<OnlyAllowedTakerArgs> {
       encode(args: OnlyAllowedTakerArgs): HexString {
         return new HexString(args.allowedTaker.toString())
       }
@@ -344,6 +343,7 @@ describe('SwapVM', () => {
       Symbol('Custom.onlyAllowedTaker'),
       new OnlyAllowedTakerCoder(),
     )
+    const { xycSwap } = instructions
 
     const instructionsSet = [xycSwap.xycSwapXD, onlyAllowedTaker]
     const program = new ProgramBuilder(instructionsSet)
@@ -556,8 +556,8 @@ describe('SwapVM', () => {
 
     const swap = swapVM.swap(swapParams)
 
-    const { txHash: swapTxHash } = await swapper.send({ ...swap, allowFail: true })
-    await forkNode.printTrace(swapTxHash)
+    const { txHash: swapTxHash } = await swapper.send({ ...swap, allowFail: false })
+    // await forkNode.printTrace(swapTxHash)
 
     const providerWethBalanceAfter = await getAquaBalance(
       liqProviderAddress,

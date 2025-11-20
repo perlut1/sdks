@@ -9,6 +9,7 @@ export default defineConfig({
     coverage: {
       reportsDirectory: '../../coverage/typescript/swap-vm',
       include: ['src'],
+      exclude: ['**/index.ts', '**/constants.ts', '**/types.ts'],
     },
   },
 })

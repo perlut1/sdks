@@ -11,6 +11,7 @@ export default defineConfig({
     coverage: {
       reportsDirectory: '../../coverage/typescript/aqua',
       include: ['src'],
+      exclude: ['**/index.ts', '**/constants.ts', '**/types.ts'],
     },
   },
 })
