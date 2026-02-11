@@ -30,4 +30,4 @@ pnpm install
 
 # Build Solidity contracts (required for tests and linting)
 pnpm build:contracts
-```
+```ok
